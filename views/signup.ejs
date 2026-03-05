@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup | FullStack Cafe</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fcf8f5; /* Light cream background */
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Center Form Container */
+        .form-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 80px); /* Adjust based on navbar height */
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0d6d0;
+        }
+
+        h2 {
+            text-align: center;
+            color: #5d4037; /* Coffee Brown */
+            margin-bottom: 25px;
+            font-size: 28px;
+        }
+
+        /* Input Styling */
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 5px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-sizing: border-box; /* Ensures padding doesn't break width */
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #8d6e63;
+            box-shadow: 0 0 5px rgba(141, 110, 99, 0.2);
+        }
+
+        /* Button Styling */
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            background-color: #6f4e37; /* Coffee color */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #5d4037;
+        }
+
+        /* Link Styling */
+        .link-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #777;
+        }
+
+        .link-text a {
+            color: #6f4e37;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .link-text a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<%- include('partials/navbar', { user: user }) %>
+
+<div class="form-wrapper">
+    <div class="form-container">
+        <h2>Create Account</h2>
+
+        <form id="signupForm">
+            <div class="input-group">
+                <input type="text" id="username" placeholder="Username" required>
+            </div>
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email Address" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Password" required>
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
+
+        <div class="link-text">
+            Already have an account? <a href="/login">Login here</a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById("signupForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    const username = document.getElementById("username").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    try {
+        const res = await fetch("/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, email, password }) 
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            alert("Signup successful! Welcome to the Cafe.");
+            window.location.href = "/login"; 
+        } else {
+            alert(data.error || "Signup failed");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("An error occurred. Please try again.");
+    }
+});
+</script>
+
+</body>
+</html>

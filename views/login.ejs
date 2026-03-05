@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | FullStack Cafe</title>
+    <style>
+        /* Shared CSS with Signup for consistency */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fcf8f5; 
+            margin: 0;
+            padding: 0;
+        }
+
+        .form-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 80px); 
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0d6d0;
+        }
+
+        h2 {
+            text-align: center;
+            color: #5d4037; 
+            margin-bottom: 25px;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 5px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #8d6e63;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            background-color: #6f4e37; 
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #5d4037;
+        }
+
+        .link-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #777;
+        }
+
+        .link-text a {
+            color: #6f4e37;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<%- include('partials/navbar', { user: locals.user || null }) %>
+
+<div class="form-wrapper">
+    <div class="form-container">
+        <h2>Login</h2>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email Address" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="link-text">
+            Don't have an account? <a href="/signup">Signup here</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const loginForm = document.getElementById('loginForm');
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // FIX: Use the correct variable 'loginForm' or get elements by ID
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const res = await fetch('/login', {
+                method: 'POST',
+                body: JSON.stringify({ email, password }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                // Redirect based on the URL provided by your server
+                window.location.assign(data.redirectUrl); 
+            } else {
+                // Show the error message from your controller (e.g., "Invalid password")
+                alert(data.error || "Login failed");
+            }
+        } catch (err) {
+            console.error("Submit Error:", err);
+            alert("An error occurred. Please check the console.");
+        }
+    });
+</script>
+</body>
+</html>

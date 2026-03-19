@@ -7,7 +7,7 @@ const { requireAuth } = require("../middleware/authMiddleware");
  * Renders the cart.ejs file.
  * The frontend JS will read from LocalStorage and display items.
  */
-router.get("/", requireAuth, cartController.getCartPage);
+router.get("/", cartController.getCartPage);
 
 /** * 2. Confirm Order (Checkout)
  * This is the bridge to the database. 

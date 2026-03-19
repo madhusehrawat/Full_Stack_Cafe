@@ -122,8 +122,13 @@
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
+        // ✅ NEW: Capture the returnTo parameter from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const returnTo = urlParams.get('returnTo') || '';
+
         try {
-            const res = await fetch('/login', {
+            // ✅ NEW: Include the returnTo in the POST URL so the controller sees it
+            const res = await fetch(`/login?returnTo=${encodeURIComponent(returnTo)}`, {
                 method: 'POST',
                 body: JSON.stringify({ email, password }),
                 headers: { 'Content-Type': 'application/json' }

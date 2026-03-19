@@ -33,6 +33,7 @@ const { checkAuth } = require("./middleware/authMiddleware");
 app.use(checkAuth);
 
 // routes
+app.get("/", (req, res) => res.redirect("/products"));
 app.use('/', authRoutes);
 app.use('/', productRoutes);
 app.use("/support", supportRoutes);

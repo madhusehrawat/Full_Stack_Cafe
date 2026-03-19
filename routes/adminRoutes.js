@@ -61,23 +61,23 @@ const adminOnly = (req, res, next) => {
 };
 
 // --- Dashboard Routes ---
-router.get("/dashboard", requireAuth, adminOnly, adminController.getAdminDashboard);
-router.get("/dashboard-data", requireAuth, adminOnly, adminController.getDashboardData);
+router.get("/dashboard", adminOnly, adminController.getAdminDashboard);
+router.get("/dashboard-data", adminOnly, adminController.getDashboardData);
 
 // --- Product Management ---
 
 // 1. Get the Add Product Page (Admin Only)
-router.get('/products/add', requireAuth, adminOnly, productController.getAddProductPage);
+router.get('/products/add', adminOnly, productController.getAddProductPage);
 
 // 2. Post New Product (Admin Only + Multer File Upload)
 // Note: name="image" in EJS must match here
-router.post('/products/add', requireAuth, adminOnly, upload.single('image'), productController.postAddProduct);
+router.post('/products/add', adminOnly, upload.single('image'), productController.postAddProduct);
 
 // 3. Status Toggles
-router.patch("/product/toggle-status/:id", requireAuth, adminOnly, adminController.toggleProductStatus);
-router.post("/product/toggle/:id", requireAuth, adminOnly, adminController.toggleProductStatus);
+router.patch("/product/toggle-status/:id", adminOnly, adminController.toggleProductStatus);
+router.post("/product/toggle/:id", adminOnly, adminController.toggleProductStatus);
 
 // --- Order Management ---
-router.post("/order/status", requireAuth, adminOnly, adminController.updateOrderStatus);
+router.post("/order/status", adminOnly, adminController.updateOrderStatus);
 
 module.exports = router;

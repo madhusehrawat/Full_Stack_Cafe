@@ -1,34 +1,135 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+
+// --- UTILS: OTP Configuration ---
+// In a production app, use a dedicated service like SendGrid or AWS SES.
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER, // Your gmail
+        pass: process.env.EMAIL_PASS  // Your gmail App Password
+    }
+});
+
+// Temporary in-memory store for OTPs. 
+// Note: In production, use Redis or a "TempUser" MongoDB collection with TTL.
+const otpStore = new Map(); 
 
 exports.getSignupPage = (req, res) => {
     res.render("signup");
 };
 
 exports.getLoginPage = (req, res) => {
-    res.render("login");
+    const returnTo = req.query.returnTo || "";
+    res.render("login", { returnTo });
 };
 
+// --- NEW/UPDATED SIGNUP LOGIC ---
 exports.postSignup = async (req, res) => {
     try {
-        const { username, email, password } = req.body; 
+        const { username, email, password } = req.body;
 
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ success: false, error: "Email already registered" });
 
+        // 1. Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // 2. Hash password now so we don't store it in plain text in the Map
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({
+
+        // 3. Store user data + OTP temporarily (expires in 5 mins)
+        otpStore.set(email, {
             username,
-            email,
             password: hashedPassword,
-            role: 'user' // Default role
+            otp,
+            expires: Date.now() + 300000 
+        });
+
+        // 4. Send Email
+        const mailOptions = {
+            from: '"FullStack Cafe" <no-reply@fullstackcafe.com>',
+            to: email,
+            subject: "Verify Your Email - FullStack Cafe",
+            html: `<h3>Welcome to the Cafe!</h3>
+                   <p>Your verification code is: <strong>${otp}</strong></p>
+                   <p>This code expires in 5 minutes.</p>`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.status(200).json({ success: true, message: "OTP sent to email" });
+    } catch (err) {
+        console.error("SIGNUP ERROR:", err);
+        res.status(500).json({ success: false, error: "Error sending OTP email" });
+    }
+};
+
+// --- NEW: VERIFY OTP AND CREATE USER ---
+exports.verifyOTP = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        const tempData = otpStore.get(email);
+
+        if (!tempData) {
+            return res.status(400).json({ success: false, error: "OTP expired or not found. Please signup again." });
+        }
+
+        if (tempData.expires < Date.now()) {
+            otpStore.delete(email);
+            return res.status(400).json({ success: false, error: "OTP expired" });
+        }
+
+        if (tempData.otp !== otp) {
+            return res.status(400).json({ success: false, error: "Invalid OTP" });
+        }
+
+        // OTP is correct! Create the actual user
+        const newUser = new User({
+            username: tempData.username,
+            email: email,
+            password: tempData.password,
+            role: 'user'
         });
 
         await newUser.save();
-        res.status(201).json({ success: true });
+        otpStore.delete(email); // Clean up
+
+        res.status(201).json({ success: true, message: "Account verified successfully!" });
     } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
+exports.resendOTP = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const tempData = otpStore.get(email);
+
+        if (!tempData) {
+            return res.status(400).json({ success: false, error: "Session expired. Please signup again." });
+        }
+
+        // Generate new OTP
+        const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Update the store with new OTP and fresh expiry
+        tempData.otp = newOtp;
+        tempData.expires = Date.now() + 300000; 
+        otpStore.set(email, tempData);
+
+        await transporter.sendMail({
+            from: '"FullStack Cafe" <no-reply@fullstackcafe.com>',
+            to: email,
+            subject: "New Verification Code - FullStack Cafe",
+            html: `<p>Your new verification code is: <strong>${newOtp}</strong></p>`
+        });
+
+        res.json({ success: true, message: "New OTP sent!" });
+    } catch (err) {
+        res.status(500).json({ success: false, error: "Failed to resend email" });
     }
 };
 
@@ -50,23 +151,19 @@ exports.postLogin = async (req, res) => {
             return res.status(401).json({ success: false, error: "Invalid email or password" });
         }
 
-        // 1. Generate Token - Payload must include role for the adminOnly check
         const token = jwt.sign(
             { id: user._id, role: user.role }, 
             process.env.JWT_SECRET || "supersecretkey",
             { expiresIn: "1d" }
         );
 
-        // 2. Set Cookie - Name MUST be "token" to match your requireAuth middleware
         res.cookie("token", token, { 
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: 'lax', // Helps with redirecting between routes
+            sameSite: 'lax',
             maxAge: 24 * 60 * 60 * 1000 
         });
 
-        // 3. Determine Redirect Path
-        // Make sure your DB role is exactly 'admin' (lowercase)
         const destination = user.role === 'admin' ? '/admin/dashboard' : '/products';
         
         return res.status(200).json({ 
@@ -81,10 +178,7 @@ exports.postLogin = async (req, res) => {
 };
 
 exports.logout = (req, res) => {
-    // Clear the specific cookie name
     res.clearCookie("token");
-    
-    // Logic to handle both AJAX and regular link clicks
     if (req.headers.accept && req.headers.accept.includes('application/json')) {
         return res.json({ success: true, redirectUrl: "/login" });
     }

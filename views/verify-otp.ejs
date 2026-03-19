@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP | FullStack Cafe</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fcf8f5;
+            margin: 0;
+            padding: 0;
+        }
+        .form-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0d6d0;
+            text-align: center;
+        }
+        h2 { color: #5d4037; margin-bottom: 10px; }
+        p { color: #777; font-size: 14px; margin-bottom: 25px; }
+        
+        .otp-input {
+            width: 100%;
+            padding: 15px;
+            letter-spacing: 10px;
+            font-size: 24px;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #6f4e37;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { background-color: #5d4037; }
+    </style>
+</head>
+<body>
+
+<div class="form-wrapper">
+    <div class="form-container">
+        <h2>Verify Your Email</h2>
+        <p id="instructionText">Enter the 6-digit code sent to your email.</p>
+
+        <form id="verifyForm">
+            <input type="text" id="otp" class="otp-input" placeholder="000000" maxlength="6" required>
+            <button type="submit" id="verifyBtn">Verify & Create Account</button>
+        </form>
+        <div id="resend-section" style="margin-top: 20px; font-size: 14px;">
+    <p id="timerText">Resend code in <span id="timer">30</span>s</p>
+    <a href="#" id="resendBtn" style="color: #6f4e37; text-decoration: none; font-weight: bold; display: none;" onclick="handleResend(event)">Resend OTP</a>
+</div>
+        
+        <div style="margin-top: 20px;">
+            <a href="/signup" style="color: #6f4e37; text-decoration: none; font-size: 14px;">Back to Signup</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const email = sessionStorage.getItem("verifyEmail");
+    
+    // Redirect back to signup if no email is found in session
+    if (!email) {
+        window.location.href = "/signup";
+    } else {
+        document.getElementById("instructionText").innerText = `Code sent to: ${email}`;
+    }
+
+    document.getElementById("verifyForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const otp = document.getElementById("otp").value;
+        const btn = document.getElementById("verifyBtn");
+
+        btn.innerText = "Verifying...";
+        btn.disabled = true;
+
+        try {
+            const res = await fetch("/verify-otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, otp })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert("Account verified! You can now login.");
+                sessionStorage.removeItem("verifyEmail"); // Cleanup
+                window.location.href = "/login";
+            } else {
+                alert(data.error || "Invalid OTP");
+                btn.innerText = "Verify & Create Account";
+                btn.disabled = false;
+            }
+        } catch (err) {
+            alert("An error occurred. Please try again.");
+            btn.disabled = false;
+        }
+    });
+
+    let timeLeft = 30;
+    const timerSpan = document.getElementById("timer");
+    const timerText = document.getElementById("timerText");
+    const resendBtn = document.getElementById("resendBtn");
+
+    function startTimer() {
+        const countdown = setInterval(() => {
+            timeLeft--;
+            timerSpan.innerText = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                timerText.style.display = "none";
+                resendBtn.style.display = "inline";
+            }
+        }, 1000);
+    }
+
+    async function handleResend(e) {
+        e.preventDefault();
+        resendBtn.style.display = "none";
+        timerText.style.display = "block";
+        timerText.innerText = "Sending...";
+
+        try {
+            const res = await fetch("/resend-otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: sessionStorage.getItem("verifyEmail") })
+            });
+            
+            if (res.ok) {
+                alert("New code sent!");
+                timeLeft = 30; // Reset timer
+                timerText.innerHTML = 'Resend code in <span id="timer">30</span>s';
+                startTimer();
+            }
+        } catch (err) {
+            alert("Error resending code.");
+            resendBtn.style.display = "inline";
+        }
+    }
+
+    // Start timer on page load
+    startTimer();
+</script>
+
+</body>
+</html>

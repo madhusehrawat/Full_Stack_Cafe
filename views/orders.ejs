@@ -1,4 +1,13 @@
-<%- include('partials/navbar') %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - FullStack Cafe</title>
+    <link rel="stylesheet" href="/css/cart.css">
+</head>
+<body>
+    <%- include('partials/navbar') %>
 
 <div id="app-content">
     <div style="max-width: 900px; margin: 40px auto; padding: 0 20px; font-family: 'Segoe UI', sans-serif;">
@@ -7,7 +16,7 @@
             <h2 style="color: #5d4037; margin: 0; display: flex; align-items: center; gap: 12px;">
                 <i class="fas fa-history"></i> My Order Status
             </h2>
-            <button id="manualRefresh" style="background: none; border: 1px solid #ddd; padding: 8px 15px; border-radius: 8px; cursor: pointer; color: #666; font-size: 0.9rem; transition: 0.3s;">
+            <button id="manualRefresh" style="background: white; border: 1px solid #ddd; padding: 8px 15px; border-radius: 8px; cursor: pointer; color: #666; font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-sync-alt"></i> Check Updates
             </button>
         </div>
@@ -15,11 +24,11 @@
         <div id="orders-list">
             <% if (orders && orders.length > 0) { %>
                 <% orders.forEach(order => { %>
-                    <div class="order-card" data-id="<%= order._id %>" style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: 0.3s; border-top: 4px solid #e67e22;">
+                    <div class="order-card" data-id="<%= order._id %>" style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-top: 4px solid var(--accent);">
                         
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
                             <div>
-                                <span style="color: #888; font-size: 0.85rem;">Order #<%= order._id.toString().slice(-6).toUpperCase() %></span>
+                                <span style="color: #888; font-size: 0.85rem; font-family: monospace;">ID: #<%= order._id.toString().slice(-6).toUpperCase() %></span>
                                 <p style="margin: 5px 0; font-weight: bold; color: #333;"><%= new Date(order.createdAt).toLocaleString() %></p>
                             </div>
                             <div id="status-badge-<%= order._id %>">
@@ -29,8 +38,8 @@
                             </div>
                         </div>
 
-                        <div class="progress-container" style="display: flex; justify-content: space-between; margin: 40px 0; position: relative;">
-                            <div class="progress-line" style="position: absolute; top: 15px; left: 0; right: 0; height: 3px; background: #eee; z-index: 1;"></div>
+                        <div class="progress-wrapper" style="margin: 40px 0; position: relative;">
+                            <div style="position: absolute; top: 15px; left: 0; right: 0; height: 3px; background: #eee; z-index: 1;"></div>
                             
                             <% 
                                 const steps = ['Pending', 'Preparing', 'Out for Delivery', 'Delivered'];
@@ -38,65 +47,63 @@
                                 const fillWidth = (currentIndex / (steps.length - 1)) * 100;
                             %>
 
-                            <div id="line-fill-<%= order._id %>" class="line-fill" style="position: absolute; top: 15px; left: 0; height: 3px; background: #e67e22; z-index: 2; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); width: <%= fillWidth %>%;"></div>
+                            <div id="line-fill-<%= order._id %>" style="position: absolute; top: 15px; left: 0; height: 3px; background: var(--accent); z-index: 2; transition: width 1s ease; width: <%= fillWidth %>%;"></div>
                             
-                            <% steps.forEach((step, index) => { %>
-                                <div class="step-item" style="position: relative; z-index: 3; text-align: center; width: 25%;">
-                                    <div id="dot-<%= order._id %>-<%= index %>" class="step-dot <%= index < currentIndex ? 'completed' : (index === currentIndex ? 'active' : '') %>">
-                                        <% if (index < currentIndex) { %>
-                                            <i class="fas fa-check"></i>
-                                        <% } else { %>
-                                            <%= index + 1 %>
-                                        <% } %>
+                            <div style="display: flex; justify-content: space-between; position: relative; z-index: 3;">
+                                <% steps.forEach((step, index) => { %>
+                                    <div style="text-align: center; width: 25%;">
+                                        <div id="dot-<%= order._id %>-<%= index %>" class="step-dot <%= index < currentIndex ? 'completed' : (index === currentIndex ? 'active' : '') %>">
+                                            <%- index < currentIndex ? '<i class="fas fa-check"></i>' : (index + 1) %>
+                                        </div>
+                                        <p style="font-size: 0.7rem; margin-top: 8px; color: #666; font-weight: 600;"><%= step %></p>
                                     </div>
-                                    <p style="font-size: 0.75rem; margin-top: 8px; color: #666; font-weight: 500;"><%= step %></p>
-                                </div>
-                            <% }) %>
+                                <% }) %>
+                            </div>
                         </div>
 
-                        <div style="background: #fdfaf8; border-radius: 10px; padding: 15px; border: 1px dashed #e0d7d3;">
+                        <div style="background: #fdfaf8; border-radius: 10px; padding: 15px; border: 1px solid #eee;">
                             <% order.items.forEach(item => { %>
                                 <% if (item.productId) { %>
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9rem;">
-                                        <span><%= item.productId.name %> <small style="color:#999;">x<%= item.quantity %></small></span>
-                                        <span style="font-weight: 600;">₹<%= item.productId.price * item.quantity %></span>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem;">
+                                        <span><%= item.productId.name %> <b style="color:var(--accent);">x<%= item.quantity %></b></span>
+                                        <span style="font-weight: 600;">₹<%= (item.productId.price * item.quantity).toFixed(2) %></span>
                                     </div>
+                                <% } else { %>
+                                    <div style="color: #999; font-size: 0.8rem; margin-bottom: 8px;">Product no longer available</div>
                                 <% } %>
                             <% }) %>
-                            <div style="border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px; display: flex; justify-content: space-between; font-weight: bold; color: #5d4037; font-size: 1.1rem;">
+                            <div style="border-top: 2px solid #fff; margin-top: 10px; padding-top: 10px; display: flex; justify-content: space-between; font-weight: bold; color: var(--main); font-size: 1.1rem;">
                                 <span>Grand Total</span>
-                                <span>₹<%= order.totalAmount %></span>
+                                <span>₹<%= order.totalAmount.toFixed(2) %></span>
                             </div>
                         </div>
                     </div>
                 <% }) %>
             <% } else { %>
-                <div style="text-align: center; padding: 60px; background: white; border-radius: 15px; border: 2px dashed #eee;">
+                <div style="text-align: center; padding: 60px; background: white; border-radius: 15px; border: 2px dashed #ddd;">
                     <i class="fas fa-mug-hot fa-4x" style="color: #eee; margin-bottom: 20px;"></i>
-                    <p style="color: #777; font-size: 1.1rem;">No active orders found.</p>
-                    <a href="/products" class="spa-link" style="color: #e67e22; font-weight: bold; text-decoration: none; border-bottom: 2px solid #e67e22; padding-bottom: 2px;">Order Something Delicious</a>
+                    <p style="color: #777; font-size: 1.1rem;">You haven't ordered anything yet.</p>
+                    <a href="/products" class="spa-link" style="color: var(--accent); font-weight: bold; text-decoration: none;">Browse Our Menu →</a>
                 </div>
             <% } %>
         </div>
     </div>
 
     <style>
-        .status-pill { padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; text-transform: capitalize; }
+        .status-pill { padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
         .status-pill.pending { background: #fff3e0; color: #ef6c00; }
         .status-pill.preparing { background: #e3f2fd; color: #1565c0; }
         .status-pill.out-for-delivery { background: #f3e5f5; color: #7b1fa2; }
         .status-pill.delivered { background: #e8f5e9; color: #2e7d32; }
 
         .step-dot { 
-            width: 32px; height: 32px; border-radius: 50%; background: #eee; color: #aaa; 
+            width: 30px; height: 30px; border-radius: 50%; background: #fff; color: #ccc; 
             margin: 0 auto; display: flex; align-items: center; justify-content: center; 
-            font-size: 0.85rem; font-weight: bold; transition: all 0.5s ease;
-            border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 0.8rem; font-weight: bold; transition: 0.4s;
+            border: 2px solid #eee;
         }
-        .step-dot.active { background: #e67e22; color: white; transform: scale(1.2); }
-        .step-dot.completed { background: #2e7d32; color: white; }
-        
-        #manualRefresh:active { transform: scale(0.95); background: #f5f5f5; }
+        .step-dot.active { border-color: var(--accent); background: var(--accent); color: white; box-shadow: 0 0 10px rgba(230, 126, 34, 0.4); }
+        .step-dot.completed { border-color: #2e7d32; background: #2e7d32; color: white; }
     </style>
 
     <script>
@@ -110,30 +117,30 @@
                 const refreshBtn = document.getElementById('manualRefresh');
                 if(refreshBtn) refreshBtn.querySelector('i').classList.add('fa-spin');
 
-                for (let card of cards) {
-                    const orderId = card.dataset.id;
-                    try {
+                try {
+                    for (let card of cards) {
+                        const orderId = card.dataset.id;
                         const res = await fetch(`/orders/status/${orderId}`);
                         const data = await res.json();
 
                         if (data.success && data.status) {
                             const statusIndex = stepsMap.indexOf(data.status);
                             
-                            // 1. Update Badge
+                            // 1. Badge
                             const badge = document.getElementById(`status-badge-${orderId}`);
-                            const statusClass = data.status.toLowerCase().replace(/\s+/g, '-');
-                            if(badge) badge.innerHTML = `<span class="status-pill ${statusClass}">${data.status}</span>`;
+                            if(badge) {
+                                const statusClass = data.status.toLowerCase().replace(/\s+/g, '-');
+                                badge.innerHTML = `<span class="status-pill ${statusClass}">${data.status}</span>`;
+                            }
 
-                            // 2. Update Progress Line
+                            // 2. Line
                             const fill = document.getElementById(`line-fill-${orderId}`);
-                            const percentage = (statusIndex / (stepsMap.length - 1)) * 100;
-                            if(fill) fill.style.width = `${percentage}%`;
+                            if(fill) fill.style.width = `${(statusIndex / (stepsMap.length - 1)) * 100}%`;
 
-                            // 3. Update Dots
+                            // 3. Dots
                             stepsMap.forEach((_, idx) => {
                                 const dot = document.getElementById(`dot-${orderId}-${idx}`);
                                 if (!dot) return;
-                                
                                 if (idx < statusIndex) {
                                     dot.className = 'step-dot completed';
                                     dot.innerHTML = '<i class="fas fa-check"></i>';
@@ -146,61 +153,34 @@
                                 }
                             });
                         }
-                    } catch (err) { console.error("Poll error:", err); }
-                }
+                    }
+                } catch (err) { console.warn("Poll failed", err); }
 
-                if(refreshBtn) setTimeout(() => refreshBtn.querySelector('i').classList.remove('fa-spin'), 600);
+                if(refreshBtn) {
+                    setTimeout(() => refreshBtn.querySelector('i').classList.remove('fa-spin'), 600);
+                }
             }
 
-            // Setting the interval for real-time updates
-            const pollInterval = setInterval(updateUI, 10000);
+            // Start Polling
+            const pollInterval = setInterval(updateUI, 15000);
             
-            // Manual trigger
+            // Manual click
             document.getElementById('manualRefresh')?.addEventListener('click', updateUI);
 
-            // Important: Cleanup interval when user navigates away (SPA safety)
-            const observer = new MutationObserver((mutations, obs) => {
+            // SPA Cleanup: Stop polling if the orders list is removed from the DOM
+            const cleanupCheck = setInterval(() => {
                 if (!document.getElementById('orders-list')) {
                     clearInterval(pollInterval);
-                    obs.disconnect();
+                    clearInterval(cleanupCheck);
                 }
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
+            }, 1000);
 
-            // Initial run
+            // Initial call
             updateUI();
         })();
-
-        /**
-         * GLOBAL SPA BRIDGE: 
-         * If your 'Confirm Order' button on the cart page calls this, 
-         * it will handle the backend POST and then trigger the UI swap.
-         */
-        async function placeOrderSPA(total) {
-            try {
-                const res = await fetch('/orders/confirm', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ totalAmount: total })
-                });
-                const result = await res.json();
-                
-                if(result.success) {
-                    // Trigger your existing SPA navigation logic
-                    const orderLink = document.createElement('a');
-                    orderLink.href = '/orders';
-                    orderLink.className = 'spa-link';
-                    document.body.appendChild(orderLink);
-                    orderLink.click(); // This fires your SPA page swapper
-                    orderLink.remove();
-                } else {
-                    alert("Order placement failed. Please try again.");
-                }
-            } catch (e) {
-                console.error("SPA Order Error:", e);
-            }
-        }
     </script>
 </div>
 
 <%- include('partials/footer') %>
+</body>
+</html>

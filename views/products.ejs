@@ -4,91 +4,141 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FullStack Cafe | Products</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
     <style>
-        :root { --main: #5d4037; --accent: #e67e22; --bg: #fdf5e6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
+        :root { 
+            --main: #4e342e; 
+            --accent: #d35400; 
+            --bg: #fdf5e6; 
+            --white: #ffffff;
+            --text: #2c3e50;
+            --outOfStock: #95a5a6;
+            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
 
-        .header { text-align: center; padding: 30px; }
-        .header h1 { color: var(--main); font-size: 2.5rem; margin: 0; }
-        .header p { margin-top: 10px; font-size: 1.1rem; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; color: var(--text); overflow-x: hidden; }
 
+        /* --- Header --- */
+        .header { text-align: center; padding: 50px 20px 30px; background: linear-gradient(to bottom, #f3e5f5, var(--bg)); }
+        .header h1 { font-family: 'Playfair Display', serif; color: var(--main); font-size: 2.8rem; margin: 0; }
+        .header p { color: #6d4c41; margin-top: 5px; }
+
+        /* --- Filters & Tabs --- */
+        .category-tabs { text-align: center; margin-bottom: 20px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+        .category-tabs button { padding: 8px 20px; border-radius: 30px; border: 2px solid var(--main); cursor: pointer; background: transparent; color: var(--main); font-weight: 600; transition: var(--transition); }
+        .category-tabs button.active { background: var(--main); color: white; }
+
+        .availability-tabs { text-align: center; margin-bottom: 30px; }
+        .avail-group { display: inline-flex; background: white; padding: 4px; border-radius: 40px; box-shadow: var(--shadow); border: 1px solid #eee; }
+        .tab-mini { padding: 6px 15px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; background: transparent; color: var(--text); font-size: 0.85rem; transition: 0.3s; }
+        .tab-mini.active { background: var(--accent); color: white; }
+
+        .filters { display: flex; justify-content: center; max-width: 450px; margin: 0 auto 40px; position: relative; }
+        .filters input { padding: 12px 20px; width: 100%; border-radius: 40px; border: 1px solid #ddd; outline: none; box-shadow: var(--shadow); }
+        .filters button { position: absolute; right: 5px; top: 4px; padding: 8px 15px; background: var(--accent); color: white; border-radius: 30px; border: none; cursor: pointer; }
+
+        /* --- Product Grid --- */
         .product-grid {
-            max-width: 1200px; margin: 0 auto; display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px; padding: 20px;
-            width: 90%; align-items: start;
+            max-width: 1200px; 
+            margin: 0 auto; 
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 25px; 
+            padding: 20px;
             transition: opacity 0.3s ease;
         }
 
-        .loading-active { opacity: 0.5; pointer-events: none; }
+        .card { 
+            background: var(--white); border-radius: 15px; overflow: hidden; 
+            box-shadow: var(--shadow); transition: var(--transition); 
+            display: flex; flex-direction: column; cursor: pointer;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
 
-        .card {
-            background: white; border-radius: 15px; overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: 0.3s;
-            display: flex; flex-direction: column;
+        .card-image-container { position: relative; width: 100%; height: 180px; overflow: hidden; background: #f9f9f9; }
+        .card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; }
+        .card:hover img { transform: scale(1.08); }
+
+        .sold-out-overlay {
+            position: absolute; inset: 0; background: rgba(255, 255, 255, 0.6);
+            display: flex; justify-content: center; align-items: center; z-index: 10; 
+            font-weight: 700; color: #c0392b; font-size: 1.1rem; text-transform: uppercase; backdrop-filter: blur(1px);
         }
 
-        .card-image-container { width: 100%; height: 200px; overflow: hidden; }
-        .card img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        .card:hover img { transform: scale(1.1); }
+        .card-body { padding: 18px; text-align: left; }
+        .card-body h3 { margin: 0 0 5px; font-size: 1.1rem; color: var(--main); font-weight: 600; }
+        
+        .stock-badge { display: inline-block; font-size: 0.65rem; padding: 2px 8px; border-radius: 8px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .in-stock { background: #e8f5e9; color: #2e7d32; }
+        .out-of-stock { background: #ffebee; color: #c62828; }
 
-        .card-body { padding: 15px; text-align: center; flex: 1; }
-        .price { color: #2e7d32; font-size: 1.3rem; font-weight: bold; }
+        .price { color: var(--accent); font-size: 1.25rem; font-weight: 700; margin-bottom: 15px; }
 
-        .category-tabs { text-align: center; margin: 20px; }
-        .category-tabs button {
-            padding: 10px 22px; margin: 5px; border-radius: 8px; border: none;
-            cursor: pointer; background: var(--main); color: white; font-weight: bold;
+        .buy-btn { 
+            background: var(--main); color: white; border: none; padding: 10px; border-radius: 10px; 
+            cursor: pointer; width: 100%; font-weight: 600; display: flex; align-items: center; 
+            justify-content: center; gap: 8px; font-size: 0.9rem; transition: 0.3s;
         }
-        .category-tabs button.active { background: var(--accent); }
+        .buy-btn:hover:not(:disabled) { background: var(--accent); }
+        .buy-btn:disabled { background: var(--outOfStock); cursor: not-allowed; }
 
-        .filters { text-align:center; margin-bottom:20px; display: flex; justify-content: center; gap: 10px; }
-        .filters input { padding:12px; width:280px; border-radius:8px; border:1px solid #ddd; }
-        .filters button { padding:12px 25px; background: var(--main); color:white; border:none; border-radius:8px; cursor:pointer; }
-
-        .pagination { display: flex; justify-content: center; padding: 40px; gap: 10px; }
-        .pagination a { 
-            padding: 10px 18px; background: white; border: 1px solid var(--main); 
-            color: var(--main); text-decoration: none; border-radius: 5px; 
-            font-weight: bold; cursor: pointer; 
+        /* --- Pagination Modern Navigation --- */
+        .pagination-container { display: flex; justify-content: center; margin: 50px 0 80px; }
+        .pagination-wrapper { 
+            display: flex; align-items: center; background: var(--white); 
+            padding: 8px 15px; border-radius: 50px; box-shadow: var(--shadow); 
+            gap: 20px; border: 1px solid #eee; 
         }
-        .pagination a.active { background: var(--main); color: white; }
+        .nav-btn { 
+            background: var(--main); color: white; border: none; 
+            width: 38px; height: 38px; border-radius: 50%; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; transition: 0.3s; 
+        }
+        .nav-btn:hover:not(:disabled) { background: var(--accent); transform: scale(1.1); }
+        .nav-btn:disabled { background: #e0e0e0; color: #999; cursor: not-allowed; }
+        .page-counter { font-weight: 600; color: var(--main); display: flex; align-items: center; gap: 8px; min-width: 70px; justify-content: center; }
+        .page-counter .divider { color: #ccc; }
+        .page-counter .total { color: #999; }
 
-        .cart-sidebar { position: fixed; right: -350px; top: 0; width: 320px; height: 100%; background: white; z-index: 2100; transition: 0.3s; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
-        .cart-sidebar.open { right: 0; }
-        #cart-toast { position: fixed; bottom: 20px; right: 20px; background: #2e7d32; color: white; padding: 12px 25px; border-radius: 8px; display: none; z-index: 2000; }
+        /* --- Modal --- */
+        .modal-overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); 
+            display: none; justify-content: center; align-items: center; z-index: 2000; 
+            backdrop-filter: blur(4px);
+        }
+        .modal-content { 
+            background: white; width: 90%; max-width: 700px; border-radius: 20px; 
+            padding: 30px; position: relative; display: flex; gap: 30px; 
+        }
+        .modal-img-wrapper { flex: 0 0 250px; height: 250px; border-radius: 15px; overflow: hidden; }
+        .modal-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+
+        @media (max-width: 600px) {
+            .modal-content { flex-direction: column; align-items: center; text-align: center; }
+            .modal-img-wrapper { flex: 0 0 200px; width: 200px; }
+        }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 </head>
 <body>
 
 <%- include('partials/navbar', { user }) %>
 
-<div id="cartSidebar" class="cart-sidebar">
-    <div class="sidebar-header">
-        <h3>🛒 Your Tray</h3>
-        <button onclick="toggleSidebar()" style="background:none; border:none; font-size:2rem; cursor:pointer;">&times;</button>
-    </div>
-    <div id="sidebarItems" style="flex:1; overflow-y:auto; padding:15px 0;"></div>
-    <div style="border-top:2px solid #fdf5e6; padding-top:15px;">
-        <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:15px;">
-            <span>Subtotal:</span><span id="sidebarTotal">₹0</span>
-        </div>
-        <a href="/cart" style="display:block; text-align:center; background:var(--accent); color:white; text-decoration:none; padding:12px; border-radius:8px;">Go to Cart</a>
-    </div>
-</div>
-<div id="cart-toast">Item added to tray! ☕</div>
-
 <div id="app-content">
     <div class="header">
-        <h1>Fresh & Delicious</h1>
-        <p>Pick your favorites below.</p>
+        <h1>FullStack Cafe Menu</h1>
+        <p>Handcrafted beverages and premium bites.</p>
     </div>
 
-    <div class="category-tabs" id="categoryTabs">
-        <% ['All', 'Coffee', 'Drinks', 'Junk Food', 'Salad', 'Dessert'].forEach(cat => { 
-            const catValue = cat === 'All' ? '' : cat.toLowerCase();
-            const isActive = (catValue === (category || '')) ? 'active' : '';
+    <div class="category-tabs">
+        <% 
+           let activeCat = locals.category || ''; 
+           ['All', 'Coffee', 'Drinks', 'Junk Food', 'Salad', 'Dessert'].forEach(cat => { 
+                const catValue = cat === 'All' ? '' : cat.toLowerCase();
+                const isActive = (catValue === activeCat) ? 'active' : '';
         %>
             <button class="<%= isActive %>" onclick="loadProducts({category: '<%= catValue %>', page: 1})">
                 <%= cat %>
@@ -96,166 +146,179 @@
         <% }) %>
     </div>
 
+    <div class="availability-tabs">
+        <% let activeAvail = locals.availability || ''; %>
+        <div class="avail-group">
+            <button id="avail-all" class="tab-mini <%= !activeAvail ? 'active' : '' %>" 
+                    onclick="loadProducts({availability: '', page: 1})">All Items</button>
+            <button id="avail-instock" class="tab-mini <%= activeAvail === 'instock' ? 'active' : '' %>" 
+                    onclick="loadProducts({availability: 'instock', page: 1})">In Stock</button>
+            <button id="avail-outofstock" class="tab-mini <%= activeAvail === 'outofstock' ? 'active' : '' %>" 
+                    onclick="loadProducts({availability: 'outofstock', page: 1})">Out of Stock</button>
+        </div>
+    </div>
+
     <div class="filters">
-        <input type="text" id="searchInput" placeholder="Search for food..." value="<%= search || '' %>" onkeyup="if(event.key==='Enter') triggerSearch()">
-        <button id="searchBtn" onclick="triggerSearch()"><i class="fas fa-search"></i> Search</button>
+        <input type="text" id="searchInput" placeholder="Search menu..." value="<%= locals.search || '' %>" onkeyup="if(event.key==='Enter') triggerSearch()">
+        <button onclick="triggerSearch()"><i class="fas fa-search"></i></button>
     </div>
 
     <div class="product-grid" id="productGrid">
-        <% if (items.length > 0) { %>
-            <% items.forEach(product => { %>
-                <div class="card">
+        <% if (locals.items && items.length > 0) { %>
+            <% items.forEach(p => { 
+                const isOutOfStock = p.countInStock <= 0;
+            %>
+                <div class="card" onclick="openProductModal('<%= p._id %>', '<%= p.name %>', '<%= p.price %>', '<%= p.image %>', '<%= p.category %>', `<%= p.description %>`, <%= isOutOfStock %>)">
                     <div class="card-image-container">
-            <img src="/images/<%= product.image %>" 
-                 alt="<%= product.name %>" 
-                 onerror="this.src='https://placehold.co/400x300?text=Food+Image'">
-        </div>
+                        <% if (isOutOfStock) { %><div class="sold-out-overlay">Sold Out</div><% } %>
+                        <img src="/images/<%= p.image %>" alt="<%= p.name %>" loading="lazy">
+                    </div>
                     <div class="card-body">
-                        <h3><%= product.name %></h3>
-                        <p><%= product.description %></p>
-                        <p class="price">₹<%= product.price %></p>
-                        <button class="buy-btn" style="background:var(--main); color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; width:100%;" 
-                                onclick="addToLocalStorage('<%= product._id %>', '<%= product.name %>', '<%= product.price %>')">
-                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        <span class="stock-badge <%= isOutOfStock ? 'out-of-stock' : 'in-stock' %>">
+                            <i class="fas <%= isOutOfStock ? 'fa-times' : 'fa-check' %>"></i>
+                            <%= isOutOfStock ? 'Unavailable' : 'In Stock' %>
+                        </span>
+                        <h3><%= p.name %></h3>
+                        <div class="price">₹<%= p.price %></div>
+                        <button class="buy-btn" <%= isOutOfStock ? 'disabled' : '' %> 
+                                onclick="event.stopPropagation(); addToLocalStorage('<%= p._id %>', '<%= p.name %>', '<%= p.price %>', '<%= p.image %>')">
+                            <% if(isOutOfStock) { %>
+                                <i class="fas fa-bell"></i> Notify Me
+                            <% } else { %>
+                                <i class="fas fa-plus"></i> Add to bag
+                            <% } %>
                         </button>
                     </div>
                 </div>
             <% }) %>
         <% } else { %>
-            <p style="text-align:center; grid-column: 1/-1;">No products found.</p>
+            <div style="grid-column: 1/-1; text-align: center; padding: 80px 20px; color: #999;">
+                <i class="fas fa-mug-hot" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                <p style="font-size: 1.1rem;">No items found matching your filters.</p>
+                <button onclick="loadProducts({category: '', availability: '', search: ''})" style="background:none; border:none; color:var(--accent); text-decoration:underline; cursor:pointer;">Clear all filters</button>
+            </div>
         <% } %>
     </div>
 
-    <div id="paginationContainer">
-        <div class="pagination">
-            <% if (totalPages > 1) { %>
-                <% for(let i = 1; i <= totalPages; i++) { %>
-                    <a onclick="loadProducts({page: <%= i %>})" class="<%= currentPage == i ? 'active' : '' %>"><%= i %></a>
-                <% } %>
-            <% } %>
+    <% if (locals.totalPages > 1) { %>
+    <div class="pagination-container" id="paginationBox">
+        <div class="pagination-wrapper">
+            <button class="nav-btn" <%= currentPage === 1 ? 'disabled' : '' %> onclick="loadProducts({page: <%= currentPage - 1 %>})">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="page-counter">
+                <span class="current"><%= currentPage %></span>
+                <span class="divider">/</span>
+                <span class="total"><%= totalPages %></span>
+            </div>
+            <button class="nav-btn" <%= currentPage === totalPages ? 'disabled' : '' %> onclick="loadProducts({page: <%= currentPage + 1 %>})">
+                <i class="fas fa-chevron-right"></i>
+            </button>
         </div>
     </div>
+    <% } %>
+</div>
 
-    <script>
-        /**
-         * FIX: Use window scope to check if currentParams already exists.
-         * This prevents the SyntaxError when AJAX re-injects this script tag.
-         */
-        if (typeof window.currentParams === 'undefined') {
-            window.currentParams = {
-                category: '<%= category || "" %>',
-                search: '<%= search || "" %>',
-                page: '<%= currentPage || 1 %>',
-            };
-        }
+<div id="productModal" class="modal-overlay" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span style="position: absolute; top: 15px; right: 20px; font-size: 2rem; cursor: pointer; color: #999;" onclick="closeModal()">&times;</span>
+        <div class="modal-img-wrapper">
+            <img id="modalImg" src="">
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+            <h2 id="modalTitle" style="font-family: 'Playfair Display', serif; font-size: 1.8rem; margin: 0 0 10px; color: var(--main);"></h2>
+            <p id="modalDescription" style="color: #666; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5;"></p>
+            <div id="modalPrice" style="font-size: 1.6rem; font-weight: 700; color: var(--accent); margin-bottom: 25px;"></div>
+            <button id="modalAddBtn" class="buy-btn" style="padding: 14px; font-size: 1rem;"></button>
+        </div>
+    </div>
+</div>
 
-        async function loadProducts(newParams = {}) {
-            // Update global state safely
-            window.currentParams = { ...window.currentParams, ...newParams };
-            
-            const grid = document.getElementById('productGrid');
-            const pgContainer = document.getElementById('paginationContainer');
-            
-            grid.classList.add('loading-active');
-
-            const queryString = new URLSearchParams(window.currentParams).toString();
-            const url = `/products?${queryString}`;
-
-            try {
-                const response = await fetch(url);
-                const html = await response.text();
-                
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-
-                // Update only the content containers
-                grid.innerHTML = doc.getElementById('productGrid').innerHTML;
-                pgContainer.innerHTML = doc.getElementById('paginationContainer').innerHTML;
-
-                // Update Category Button active state
-                document.querySelectorAll('.category-tabs button').forEach(btn => {
-                    btn.classList.remove('active');
-                    const btnText = btn.innerText.toLowerCase();
-                    const activeCat = window.currentParams.category || 'all';
-                    if(btnText === activeCat) {
-                        btn.classList.add('active');
-                    }
-                });
-
-                window.history.pushState({}, '', url);
-
-            } catch (err) {
-                console.error("Error loading products:", err);
-            } finally {
-                grid.classList.remove('loading-active');
-            }
-        }
-
-        function triggerSearch() {
-            const val = document.getElementById('searchInput').value;
-            loadProducts({ search: val, page: 1 });
-        }
-
-        function addToLocalStorage(id, name, price) {
-            const isLoggedIn = <%= user ? 'true' : 'false' %>;
-            if (!isLoggedIn) { alert("Please login to order!"); window.location.href = "/login"; return; }
-
-            let cart = JSON.parse(localStorage.getItem('cafe_cart')) || [];
-            const index = cart.findIndex(item => item.id === id);
-            if (index > -1) { cart[index].quantity += 1; } 
-            else { cart.push({ id, name, price, quantity: 1 }); }
-
-            localStorage.setItem('cafe_cart', JSON.stringify(cart));
-            showToast();
-            updateCartBadge();
-            updateSidebar();
-            document.getElementById('cartSidebar').classList.add('open');
-        }
-
-        function updateCartBadge() {
-            const cart = JSON.parse(localStorage.getItem('cafe_cart')) || [];
-            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-            const badge = document.getElementById('cartBadge');
-            if (badge) {
-                badge.innerText = count;
-                badge.style.display = count > 0 ? 'inline-block' : 'none';
-            }
-        }
-
-        function updateSidebar() {
-            const cart = JSON.parse(localStorage.getItem('cafe_cart')) || [];
-            const container = document.getElementById('sidebarItems');
-            const totalEl = document.getElementById('sidebarTotal');
-            let total = 0;
-            if (cart.length === 0) { container.innerHTML = '<p style="text-align:center;">Empty</p>'; } 
-            else {
-                container.innerHTML = cart.map(item => {
-                    total += (item.price * item.quantity);
-                    return `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
-                                <span>${item.name} x ${item.quantity}</span>
-                                <span>₹${item.price * item.quantity}</span>
-                            </div>`;
-                }).join('');
-            }
-            totalEl.innerText = `₹${total}`;
-        }
-
-        function toggleSidebar() { document.getElementById('cartSidebar').classList.toggle('open'); }
-        function showToast() {
-            const toast = document.getElementById('cart-toast');
-            toast.style.display = 'block';
-            setTimeout(() => toast.style.display = 'none', 2000);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            updateCartBadge();
-            updateSidebar();
+<script>
+    async function loadProducts(newParams = {}) {
+        const grid = document.getElementById('productGrid');
+        const pagBox = document.getElementById('paginationBox');
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        Object.keys(newParams).forEach(k => { 
+            if (newParams[k] === '') urlParams.delete(k); 
+            else urlParams.set(k, newParams[k]); 
         });
 
-        window.onpopstate = () => location.reload();
-    </script>
-</div>
-<%- include('partials/footer') %>
-</body>
+        const newUrl = `/products?${urlParams.toString()}`;
+        grid.style.opacity = '0.4';
 
+        try {
+            const res = await fetch(newUrl);
+            const html = await res.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            
+            // Replace Content
+            grid.innerHTML = doc.getElementById('productGrid').innerHTML;
+            
+            const newPag = doc.getElementById('paginationBox');
+            if(pagBox && newPag) pagBox.innerHTML = newPag.innerHTML;
+            else if(!pagBox && newPag) document.getElementById('app-content').appendChild(newPag);
+            else if(pagBox && !newPag) pagBox.remove();
+
+            // Sync Tabs
+            const activeCat = urlParams.get('category') || '';
+            document.querySelectorAll('.category-tabs button').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${activeCat}'`));
+            });
+
+            const activeAvail = urlParams.get('availability') || '';
+            document.getElementById('avail-all').classList.toggle('active', activeAvail === '');
+            document.getElementById('avail-instock').classList.toggle('active', activeAvail === 'instock');
+            document.getElementById('avail-outofstock').classList.toggle('active', activeAvail === 'outofstock');
+
+            window.history.pushState({}, '', newUrl);
+        } catch (e) {
+            window.location.href = newUrl; 
+        } finally {
+            grid.style.opacity = '1';
+        }
+    }
+
+    function triggerSearch() {
+        loadProducts({ search: document.getElementById('searchInput').value, page: 1 });
+    }
+
+    function openProductModal(id, name, price, image, category, desc, isOut) {
+        document.getElementById('modalTitle').innerText = name;
+        document.getElementById('modalPrice').innerText = `₹${price}`;
+        document.getElementById('modalDescription').innerText = (desc && desc !== 'undefined') ? desc : "A FullStack Cafe special.";
+        document.getElementById('modalImg').src = `/images/${image}`;
+        const btn = document.getElementById('modalAddBtn');
+        if(isOut) {
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-ban"></i> Temporarily Unavailable`;
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-cart-plus"></i> Add to Tray - ₹${price}`;
+            btn.onclick = () => { addToLocalStorage(id, name, price, image); closeModal(); };
+        }
+        document.getElementById('productModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        document.getElementById('productModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    function addToLocalStorage(id, name, price, image) {
+        let cart = JSON.parse(localStorage.getItem('cafe_cart')) || [];
+        const idx = cart.findIndex(i => i.id === id);
+        if (idx > -1) cart[idx].quantity += 1;
+        else cart.push({ id, name, price: parseFloat(price), image, quantity: 1 });
+        localStorage.setItem('cafe_cart', JSON.stringify(cart));
+        if(window.updateCartBadge) window.updateCartBadge();
+        alert(`${name} added!`);
+    }
+
+    window.onclick = (e) => { if(e.target.id === 'productModal') closeModal(); }
+</script>
+<%-include('partials/footer') %>
+</body>
 </html>

@@ -1,43 +1,46 @@
 // controllers/supportController.js
 
+const Feedback = require("../models/Feedback");
+
 // GET support page
 exports.getSupportPage = (req, res) => {
-
     res.render("support", {
         user: req.user || null,
         success: false
     });
-
 };
 
-
 // POST complaint
-exports.submitComplaint = (req, res) => {
-
+exports.submitComplaint = async (req, res) => {
     const { name, email, product, message } = req.body;
 
     // Validation
     if (!name || !email || !product || !message) {
-        return res.render("support", {
-            user: req.user || null,
+        return res.status(400).json({
             success: false,
-            error: "All fields required"
+            message: "All fields are required."
         });
     }
 
-    // Save complaint (currently console)
-    console.log("New Complaint:");
-    console.log({
-        name,
-        email,
-        product,
-        message,
-        date: new Date()
-    });
+    try {
+        // Save complaint to the database
+        const newComplaint = new Feedback({
+            name,
+            email,
+            product,
+            message,
+            userId: req.user ? req.user._id : null
+        });
 
-    res.render("support", {
-        user: req.user || null,
-        success: true
-    });
+        await newComplaint.save();
 
+        // Respond with success
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error("Error saving complaint:", err);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error. Please try again later."
+        });
+    }
 };

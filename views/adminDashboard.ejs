@@ -1,74 +1,83 @@
-<link rel="stylesheet" href="/css/admin-dashboard.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - FullStack Cafe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-soft: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
 
-<style>
-    :root {
-        --primary: #6366f1;
-        --success: #22c55e;
-        --danger: #ef4444;
-        --warning: #f59e0b;
-        --bg-soft: #f8fafc;
-        --text-main: #1e293b;
-        --text-muted: #64748b;
-        --border: #e2e8f0;
-    }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: var(--text-main); margin: 0; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
 
-    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: var(--text-main); margin: 0; }
-    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        /* Header & Stats */
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .pulse-dot { height: 10px; width: 10px; background-color: var(--success); border-radius: 50%; display: inline-block; margin-left: 8px; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
 
-    /* Header & Stats */
-    .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-    .pulse-dot { height: 10px; width: 10px; background-color: var(--success); border-radius: 50%; display: inline-block; margin-left: 8px; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); animation: pulse 2s infinite; }
-    @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-card h3 { margin: 0; font-size: 1.5rem; color: var(--primary); }
+        .stat-card p { margin: 0.5rem 0 0; color: var(--text-muted); font-weight: 600; font-size: 0.875rem; }
+        .stat-card.warning h3 { color: var(--warning); }
 
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-    .stat-card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .stat-card h3 { margin: 0; font-size: 1.5rem; color: var(--primary); }
-    .stat-card p { margin: 0.5rem 0 0; color: var(--text-muted); font-weight: 600; font-size: 0.875rem; }
+        /* Tabs & Controls */
+        .controls-row { display: flex; justify-content: space-between; align-items: center; background: white; padding: 0.75rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid var(--border); }
+        .tabs { display: flex; gap: 0.5rem; }
+        .tab { padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; color: var(--text-muted); }
+        .tab.active { background: var(--primary); color: white; }
+        .search-box { padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px; width: 250px; outline: none; }
 
-    /* Tabs & Controls */
-    .controls-row { display: flex; justify-content: space-between; align-items: center; background: white; padding: 0.75rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid var(--border); }
-    .tabs { display: flex; gap: 0.5rem; }
-    .tab { padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; color: var(--text-muted); }
-    .tab.active { background: var(--primary); color: white; }
-    .search-box { padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px; width: 250px; outline: none; }
+        /* Tables */
+        .data-table-container { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: var(--bg-soft); padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        td { padding: 1rem; border-top: 1px solid var(--border); vertical-align: middle; }
 
-    /* Tables */
-    .data-table-container { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-    table { width: 100%; border-collapse: collapse; text-align: left; }
-    th { background: var(--bg-soft); padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    td { padding: 1rem; border-top: 1px solid var(--border); vertical-align: middle; }
+        /* Rows & Status */
+        .product-row.hidden-item { opacity: 0.6; filter: grayscale(0.8); background-color: #f8fafc; }
+        .status-pill { padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; }
+        .status-pill.pending { background: #fef3c7; color: #92400e; }
+        .status-pill.preparing { background: #e0e7ff; color: #3730a3; }
+        .status-pill.delivered { background: #dcfce7; color: #166534; }
+        
+        .status-badge { font-size: 0.75rem; font-weight: 600; padding: 4px 8px; border-radius: 4px; border: 1px solid transparent; }
+        .status-available { color: var(--success); border-color: var(--success); }
+        .status-soldout { color: var(--danger); border-color: var(--danger); }
+        .status-lowstock { color: var(--warning); border-color: var(--warning); }
 
-    /* Sold Out Styling */
-    .product-row.sold-out { opacity: 0.6; filter: grayscale(0.6); background-color: #f8fafc; }
-    .status-pill { padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; }
-    .status-pill.pending { background: #fef3c7; color: #92400e; }
-    .status-pill.preparing { background: #e0e7ff; color: #3730a3; }
-    .status-pill.delivered { background: #dcfce7; color: #166534; }
-    .status-badge { font-size: 0.75rem; font-weight: 600; padding: 4px 8px; border-radius: 4px; }
-    .status-available { color: var(--success); border: 1px solid var(--success); }
-    .status-soldout { color: var(--danger); border: 1px solid var(--danger); }
+        /* Inputs & Buttons */
+        .stock-input { width: 60px; padding: 6px; border: 1px solid var(--border); border-radius: 6px; font-weight: 600; text-align: center; }
+        .add-product-btn { background: var(--primary); color: white; text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; transition: 0.2s; }
+        .toggle-btn { padding: 0.5rem 1rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 0.8rem; min-width: 120px; }
+        .btn-danger { background: #fee2e2; color: var(--danger); }
+        .btn-success { background: #dcfce7; color: var(--success); }
+        .icon-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 5px; border-radius: 4px; transition: 0.2s; }
+        .icon-btn:hover { background: #f1f5f9; }
 
-    /* Buttons */
-    .add-product-btn { background: var(--primary); color: white; text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; transition: 0.2s; }
-    .add-product-btn:hover { opacity: 0.9; }
-    .toggle-btn { padding: 0.5rem 1rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
-    .btn-danger { background: #fee2e2; color: var(--danger); }
-    .btn-success { background: #dcfce7; color: var(--success); }
-    .icon-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; }
-
-    /* Modal */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
-    .modal-card { background: white; width: 90%; max-width: 500px; border-radius: 16px; overflow: hidden; }
-    .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .modal-body { padding: 1.5rem; }
-</style>
-
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-card { background: white; width: 90%; max-width: 500px; border-radius: 16px; overflow: hidden; }
+        .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 1.5rem; }
+    </style>
+</head>
+<body>
 <div class="container">
     <header class="dashboard-header">
         <div class="header-title">
             <h1 style="margin:0">Cafe Control Hub <span class="pulse-dot"></span></h1>
-            <p style="color: var(--text-muted); margin: 5px 0 0;">Real-time Management Dashboard</p>
+            <p style="color: var(--text-muted); margin: 5px 0 0;">Managing Inventory & Orders</p>
         </div>
         <a href="/admin/products/add" class="add-product-btn">+ Add New Product</a>
     </header>
@@ -81,6 +90,10 @@
         <div class="stat-card">
             <h3><%= stats.activeOrders %></h3>
             <p>ACTIVE ORDERS</p>
+        </div>
+        <div class="stat-card warning">
+            <h3><%= stats.lowStockCount %></h3>
+            <p>LOW STOCK ITEMS</p>
         </div>
         <div class="stat-card">
             <h3><%= stats.orderCount %></h3>
@@ -102,10 +115,10 @@
                 <thead>
                     <tr>
                         <th>Customer</th>
-                        <th>Items</th>
-                        <th>Total</th>
-                        <th>Action</th>
-                        <th>Status</th>
+                        <th>Items Ordered</th>
+                        <th>Total Amount</th>
+                        <th>Set Status</th>
+                        <th>Current Status</th>
                     </tr>
                 </thead>
                 <tbody id="orders-tbody">
@@ -113,7 +126,7 @@
                         <tr class="order-row">
                             <td>
                                 <strong><%= order.user ? order.user.username : 'Guest' %></strong><br>
-                                <small><%= order.user ? order.user.email : '' %></small>
+                                <small style="color: var(--text-muted)"><%= order.user ? order.user.email : '' %></small>
                             </td>
                             <td>
                                 <% order.items.forEach(item => { %>
@@ -122,7 +135,7 @@
                             </td>
                             <td style="font-weight: 700;">₹<%= order.totalAmount %></td>
                             <td>
-                                <select onchange="updateOrderStatus('<%= order._id %>', this.value)" style="padding: 4px; border-radius: 4px;">
+                                <select onchange="updateOrderStatus('<%= order._id %>', this.value)" style="padding: 6px; border-radius: 6px; border: 1px solid var(--border);">
                                     <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
                                     <option value="Preparing" <%= order.status === 'Preparing' ? 'selected' : '' %>>Preparing</option>
                                     <option value="Out for Delivery" <%= order.status === 'Out for Delivery' ? 'selected' : '' %>>Out for Delivery</option>
@@ -148,13 +161,14 @@
                     <tr>
                         <th>Product Details</th>
                         <th>Price</th>
+                        <th>Stock Qty</th>
                         <th>Status</th>
-                        <th style="text-align: right;">Action</th>
+                        <th style="text-align: right;">Visibility</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% products.forEach(product => { %>
-                        <tr id="row-<%= product._id %>" class="product-row <%= product.isActive ? '' : 'sold-out' %>">
+                        <tr id="row-<%= product._id %>" class="product-row <%= product.isActive ? '' : 'hidden-item' %>">
                             <td>
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <button class="icon-btn" onclick='showProductDetails(<%- JSON.stringify(product) %>)'>ℹ️</button>
@@ -163,15 +177,38 @@
                             </td>
                             <td>₹<%= product.price %></td>
                             <td>
-                                <span id="badge-<%= product._id %>" class="status-badge <%= product.isActive ? 'status-available' : 'status-soldout' %>">
-                                    <%= product.isActive ? 'Available' : 'Sold Out' %>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="number" 
+                                           id="stock-input-<%= product._id %>" 
+                                           value="<%= product.countInStock %>" 
+                                           min="0" 
+                                           class="stock-input">
+                                    <button class="icon-btn" onclick="updateStock('<%= product._id %>')" title="Save Stock">💾</button>
+                                </div>
+                            </td>
+                            <td>
+                                <% 
+                                    let badgeClass = 'status-soldout';
+                                    let badgeText = 'Out of Stock';
+                                    if (!product.isActive) {
+                                        badgeText = 'Hidden';
+                                    } else if (product.countInStock > 5) {
+                                        badgeClass = 'status-available';
+                                        badgeText = 'Available';
+                                    } else if (product.countInStock > 0) {
+                                        badgeClass = 'status-lowstock';
+                                        badgeText = 'Low Stock';
+                                    }
+                                %>
+                                <span id="badge-<%= product._id %>" class="status-badge <%= badgeClass %>">
+                                    <%= badgeText %>
                                 </span>
                             </td>
                             <td style="text-align: right;">
                                 <button id="toggle-<%= product._id %>" 
                                         onclick="toggleProductStatus('<%= product._id %>')" 
                                         class="toggle-btn <%= product.isActive ? 'btn-danger' : 'btn-success' %>">
-                                    <%= product.isActive ? 'Mark Sold Out' : 'Mark Available' %>
+                                    <%= product.isActive ? 'Hide Item' : 'Show Item' %>
                                 </button>
                             </td>
                         </tr>
@@ -193,27 +230,33 @@
 </div>
 
 <script>
-    // 1. View Toggling
+    // 1. Navigation
     function switchView(view) {
-        const orderSec = document.getElementById('orders-section');
-        const menuSec = document.getElementById('menu-section');
-        const orderTab = document.getElementById('orderTab');
-        const menuTab = document.getElementById('menuTab');
-
-        if(view === 'orders') {
-            orderSec.style.display = 'block';
-            menuSec.style.display = 'none';
-            orderTab.classList.add('active');
-            menuTab.classList.remove('active');
-        } else {
-            orderSec.style.display = 'none';
-            menuSec.style.display = 'block';
-            menuTab.classList.add('active');
-            orderTab.classList.remove('active');
-        }
+        document.getElementById('orders-section').style.display = view === 'orders' ? 'block' : 'none';
+        document.getElementById('menu-section').style.display = view === 'menu' ? 'block' : 'none';
+        document.getElementById('orderTab').classList.toggle('active', view === 'orders');
+        document.getElementById('menuTab').classList.toggle('active', view === 'menu');
     }
 
-    // 2. Product Status Toggle (Sold Out Logic)
+    // 2. STOCK MANAGEMENT (New logic)
+    async function updateStock(productId) {
+        const newStock = document.getElementById(`stock-input-${productId}`).value;
+        try {
+            const res = await fetch('/admin/product/update-stock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId, newStock: parseInt(newStock) })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                updateBadge(productId, data.countInStock, true);
+                alert("Stock Level Updated!");
+            }
+        } catch (e) { alert("Failed to update stock"); }
+    }
+
+    // 3. VISIBILITY TOGGLE (Preserved logic)
     async function toggleProductStatus(id) {
         try {
             const res = await fetch(`/admin/product/toggle/${id}`, { method: 'POST' });
@@ -221,56 +264,73 @@
             
             if (data.success) {
                 const row = document.getElementById(`row-${id}`);
-                const badge = document.getElementById(`badge-${id}`);
                 const btn = document.getElementById(`toggle-${id}`);
+                const stock = document.getElementById(`stock-input-${id}`).value;
 
                 if(data.isActive) {
-                    row.classList.remove('sold-out');
-                    badge.className = 'status-badge status-available';
-                    badge.innerText = 'Available';
+                    row.classList.remove('hidden-item');
                     btn.className = 'toggle-btn btn-danger';
-                    btn.innerText = 'Mark Sold Out';
+                    btn.innerText = 'Hide Item';
+                    updateBadge(id, stock, true);
                 } else {
-                    row.classList.add('sold-out');
-                    badge.className = 'status-badge status-soldout';
-                    badge.innerText = 'Sold Out';
+                    row.classList.add('hidden-item');
                     btn.className = 'toggle-btn btn-success';
-                    btn.innerText = 'Mark Available';
+                    btn.innerText = 'Show Item';
+                    updateBadge(id, stock, false);
                 }
             }
-        } catch (e) { alert("Failed to update status"); }
+        } catch (e) { alert("Error toggling visibility"); }
     }
 
-    // 3. Search Filter
+    // Helper to keep badge UI fresh
+    function updateBadge(id, stock, isActive) {
+        const badge = document.getElementById(`badge-${id}`);
+        if (!isActive) {
+            badge.className = 'status-badge status-soldout';
+            badge.innerText = 'Hidden';
+        } else if (stock > 5) {
+            badge.className = 'status-badge status-available';
+            badge.innerText = 'Available';
+        } else if (stock > 0) {
+            badge.className = 'status-badge status-lowstock';
+            badge.innerText = 'Low Stock';
+        } else {
+            badge.className = 'status-badge status-soldout';
+            badge.innerText = 'Out of Stock';
+        }
+    }
+
+    // 4. Existing Helper Functions
     function filterTable() {
         const input = document.getElementById('tableSearch').value.toLowerCase();
         const activeSection = document.querySelector('section:not([style*="none"])');
-        const rows = activeSection.querySelectorAll('tbody tr');
-
-        rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(input) ? '' : 'none';
+        activeSection.querySelectorAll('tbody tr').forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(input) ? '' : 'none';
         });
     }
 
-    // 4. Modal Logic
-    function showProductDetails(p) {
-        document.getElementById('modalContent').innerHTML = `
-            <p><strong>Description:</strong> ${p.description || 'No description'}</p>
-            <p><strong>Category:</strong> ${p.category || 'General'}</p>
-            <p><strong>Current Price:</strong> ₹${p.price}</p>
-        `;
-        document.getElementById('productModal').style.display = 'flex';
-    }
-    function closeModal() { document.getElementById('productModal').style.display = 'none'; }
-    
-    // Order Update Helper
     async function updateOrderStatus(id, status) {
         await fetch('/admin/order/status', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ orderId: id, status: status })
         });
-        location.reload(); // Refresh to update revenue/metrics
+        location.reload(); 
     }
+
+    function showProductDetails(p) {
+        document.getElementById('modalContent').innerHTML = `
+            <div style="text-align:center; margin-bottom:15px;">
+                <img src="/images/${p.image}" style="width:100px; height:100px; border-radius:10px; object-fit:cover;">
+            </div>
+            <p><strong>Description:</strong> ${p.description || 'No description provided.'}</p>
+            <p><strong>Category:</strong> ${p.category}</p>
+            <p><strong>Stock History:</strong> Last updated recently.</p>
+        `;
+        document.getElementById('productModal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('productModal').style.display = 'none'; }
 </script>
+</body>
+</html>

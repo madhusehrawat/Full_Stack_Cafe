@@ -4,9 +4,8 @@ const User = require("../models/User");
 
 /**
  * Helper: Calculates business metrics from order data.
- * Updated to handle case-insensitive status checks.
  */
-const calculateStats = (orders) => {
+const calculateStats = (orders, products) => {
     const totalRevenue = orders
         .filter(order => order.status && order.status.toLowerCase() === 'delivered')
         .reduce((sum, order) => sum + parseFloat(order.totalAmount || 0), 0);
@@ -16,6 +15,9 @@ const calculateStats = (orders) => {
         o.status && activeStatuses.includes(o.status.toLowerCase())
     ).length;
 
+    // ✅ Track how many items are out of stock or low (e.g., less than 3)
+    const lowStockCount = products.filter(p => p.countInStock <= 3).length;
+
     return {
         totalRevenue: totalRevenue.toLocaleString('en-IN', { 
             style: 'currency', 
@@ -23,7 +25,8 @@ const calculateStats = (orders) => {
             minimumFractionDigits: 2 
         }),
         orderCount: orders.length,
-        activeOrders: activeOrders
+        activeOrders: activeOrders,
+        lowStockCount: lowStockCount 
     };
 };
 
@@ -35,10 +38,10 @@ exports.getAdminDashboard = async (req, res) => {
                 .populate("user", "username email")
                 .sort({ createdAt: -1 })
                 .lean(),
-            Product.find().sort({ name: 1 }).lean()
+            Product.find().sort({ category: 1, name: 1 }).lean()
         ]);
 
-        const stats = calculateStats(orders);
+        const stats = calculateStats(orders, products);
 
         res.render("adminDashboard", { 
             user: req.user, 
@@ -55,70 +58,49 @@ exports.getAdminDashboard = async (req, res) => {
 // 2. AJAX Endpoint for Auto-Refresh (Polling)
 exports.getDashboardData = async (req, res) => {
     try {
-        const orders = await Order.find()
-            .populate("user", "username email")
-            .sort({ createdAt: -1 })
-            .lean();
+        const [orders, products] = await Promise.all([
+            Order.find().populate("user", "username email").sort({ createdAt: -1 }).lean(),
+            Product.find().lean()
+        ]);
 
-        const stats = calculateStats(orders);
+        const stats = calculateStats(orders, products);
 
         res.json({ 
             success: true, 
             orders, 
+            products, // Included products so stock levels update live
             stats,
             lastUpdated: new Date().toISOString() 
         });
     } catch (err) {
-        console.error("Polling Error:", err);
         res.status(500).json({ success: false, message: "Server error during data fetch" });
     }
 };
 
 // 3. Update Order Status
-// FIXED: Added validation and specific error messaging for permissions/missing data
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { orderId, status } = req.body;
         
-        if (!orderId || !status) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Order ID and Status are required." 
-            });
-        }
-
         const updatedOrder = await Order.findByIdAndUpdate(
             orderId, 
             { status: status }, 
             { new: true, runValidators: true }
         );
 
-        if (!updatedOrder) {
-            return res.status(404).json({ success: false, message: "Order not found" });
-        }
+        if (!updatedOrder) return res.status(404).json({ success: false, message: "Order not found" });
 
-        res.json({ 
-            success: true, 
-            message: "Status updated successfully", 
-            status: updatedOrder.status 
-        });
+        res.json({ success: true, message: "Status updated", status: updatedOrder.status });
     } catch (err) {
-        console.error("Update Status Error:", err);
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error while updating status." 
-        });
+        res.status(500).json({ success: false, message: "Server error." });
     }
 };
 
-// 4. Toggle Product Availability
+// 4. Toggle Product Visibility (isActive)
 exports.toggleProductStatus = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
-        
-        if (!product) {
-            return res.status(404).json({ success: false, message: "Product not found" });
-        }
+        if (!product) return res.status(404).json({ success: false, message: "Product not found" });
 
         product.isActive = !product.isActive; 
         await product.save();
@@ -126,10 +108,31 @@ exports.toggleProductStatus = async (req, res) => {
         res.json({ 
             success: true, 
             isActive: product.isActive,
-            message: `Product is now ${product.isActive ? 'Available' : 'Sold Out'}` 
+            message: `Product ${product.isActive ? 'Visible' : 'Hidden'}` 
         });
     } catch (err) {
-        console.error("Toggle Product Error:", err);
-        res.status(500).json({ success: false, message: "Server error toggling product status" });
+        res.status(500).json({ success: false, message: "Toggle error" });
+    }
+};
+
+// 5. Update Stock Quantity (NEW)
+// This allows the admin to type a number like "50" to restock an item
+exports.updateProductStock = async (req, res) => {
+    try {
+        const { productId, newStock } = req.body;
+        
+        const product = await Product.findByIdAndUpdate(
+            productId,
+            { countInStock: Number(newStock) },
+            { new: true }
+        );
+
+        res.json({ 
+            success: true, 
+            message: "Stock updated", 
+            countInStock: product.countInStock 
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Failed to update stock" });
     }
 };
